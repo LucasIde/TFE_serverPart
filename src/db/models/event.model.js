@@ -27,10 +27,6 @@ export default function eventModel(sequelize) {
                 type: DataTypes.DATE,
                 allowNull: false,
             },
-            game: {
-                type: DataTypes.STRING,
-                allowNull: true, // tu pourras plus tard faire une vraie table Game
-            }
         }, {
         //! Options du model
         tableName: 'event',

@@ -2,6 +2,7 @@ import {Sequelize} from "sequelize";
 import userModel from "./user.model.js";
 import eventModel from "./event.model.js";
 import userEventModel from "./userEvent.model.js";
+import gameModel from "./game.model.js";
 
 const { DB_DATABASE, DB_USER, DB_PASSWORD, DB_SERVER, DB_PORT } = process.env;
 
@@ -22,15 +23,15 @@ db.sequelize = sequelize;
 db.User = userModel(sequelize);
 db.Event = eventModel(sequelize);
 db.UserEvent = userEventModel(sequelize);
+db.Game = gameModel(sequelize);
 
 // Un User peut créer plusieurs Events
 db.User.hasMany(db.Event, { foreignKey: "createdBy" });
 db.Event.belongsTo(db.User, { as: "creator", foreignKey: "createdBy" });
 
 // Relation N–N via UserEvent (participation aux events)
-db.User.belongsToMany(db.Event, { through: UserEvent });
-db.Event.belongsToMany(db.User, { through: UserEvent });
+db.User.belongsToMany(db.Event, { through: db.UserEvent, foreignKey: "userId" });
+db.Event.belongsToMany(db.User, { through: db.UserEvent, foreignKey: "eventId" });
 
-// doit faire des modif
-
-export { User, Event, UserEvent };
+db.Event.belongsToMany(db.Game, { through: "EventGame", foreignKey: "eventId" });
+db.Game.belongsToMany(db.Event, { through: "EventGame", foreignKey: "gameId" });

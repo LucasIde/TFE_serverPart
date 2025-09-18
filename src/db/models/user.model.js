@@ -19,7 +19,10 @@ export default function userModel(sequelize) {
             username: {
                 type: DataTypes.STRING,
                 allowNull: false,
-                unique: true,
+            },
+            discriminator: {
+                type: DataTypes.STRING,
+                allowNull: false,
             },
             email: {
                 type: DataTypes.STRING,
@@ -38,8 +41,14 @@ export default function userModel(sequelize) {
         }, {
         //! Options du model
         tableName: 'user',
-        timestamps: true
-        }
+        timestamps: true,
+        indexes: [
+            {
+                unique: true,
+                fields: ['username', 'discriminator']
+            }
+        ]
+    }
     )
 
     return User;
