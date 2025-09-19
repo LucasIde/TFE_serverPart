@@ -10,14 +10,12 @@ const {PORT, NODE_ENV} = process.env;
 
 const app = express();
 
-app.use(authentificationMiddleware());
-
 app.use(cors());
 app.use(express.json());
 app.use(morgan("tiny"));
 
 // authentification middleware pour checker si user co et a des droit
-app.use('/api', apiRouter);
+app.use('/api', authentificationMiddleware(), apiRouter);
 
 try {
 

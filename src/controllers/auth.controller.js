@@ -1,7 +1,6 @@
 import argon2 from "argon2";
 import { generateDiscriminator, generateToken } from "../utils/auth.utils.js";
 import db from "../db/models/index.js";
-import jwt from "jsonwebtoken";
 
 
 const authController = {

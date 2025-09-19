@@ -20,7 +20,6 @@ export function generateToken({ id, username, role }) {
             algorithm: 'HS512',
             expiresIn: '1h', // vercel/ms
             issuer: process.env.JWT_ISSUER,
-            audience: process.env.JWT_AUDIENCE
         };
 
         //? Générer le token
