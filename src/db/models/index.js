@@ -14,7 +14,6 @@ const sequelize = new Sequelize(DB_DATABASE, DB_USER, DB_PASSWORD, {
 
 // Obj DB
 const db = {};
-export default db;
 
 // Instance sequelize
 db.sequelize = sequelize;
@@ -33,5 +32,8 @@ db.Event.belongsTo(db.User, { as: "creator", foreignKey: "createdBy" });
 db.User.belongsToMany(db.Event, { through: db.UserEvent, foreignKey: "userId" });
 db.Event.belongsToMany(db.User, { through: db.UserEvent, foreignKey: "eventId" });
 
-db.Event.belongsToMany(db.Game, { through: "EventGame", foreignKey: "eventId" });
-db.Game.belongsToMany(db.Event, { through: "EventGame", foreignKey: "gameId" });
+// Relation N–N via EventGame (jeux à l'event)
+db.Event.belongsToMany(db.Game, {through: "EventGame", foreignKey: "eventId", otherKey: "gameId"});
+db.Game.belongsToMany(db.Event, {through: "EventGame", foreignKey: "gameId", otherKey: "eventId"});
+
+export default db;
