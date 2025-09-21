@@ -1,8 +1,8 @@
 import { DataTypes, Sequelize } from "sequelize";
 
 /**
- * 
- * @param {Sequelize} sequelize 
+ *
+ * @param {Sequelize} sequelize
  */
 export default function eventModel(sequelize) {
 
@@ -23,12 +23,19 @@ export default function eventModel(sequelize) {
             description: {
                 type: DataTypes.TEXT,
             },
-            date: {
+            visibility: {
+                type: DataTypes.ENUM("public", "private", "friends"),
+                defaultValue: "public",
+            },
+            status: {
+                type: DataTypes.ENUM("pending", "planned", "finished"),
+                defaultValue: "pending",
+            },
+            finalDate: {
                 type: DataTypes.DATE,
-                allowNull: false,
+                allowNull: true,
             },
         }, {
-        //! Options du model
         tableName: 'event',
         timestamps: true
     }

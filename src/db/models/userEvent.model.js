@@ -1,8 +1,8 @@
 import { DataTypes, Sequelize } from "sequelize";
 
 /**
- * 
- * @param {Sequelize} sequelize 
+ *
+ * @param {Sequelize} sequelize
  */
 export default function userEventModel(sequelize) {
 
@@ -30,7 +30,7 @@ export default function userEventModel(sequelize) {
             }
         }, {
         //! Options du model
-        tableName: 'userEvent',
+        tableName: 'userevent',
         timestamps: true
     }
     )
