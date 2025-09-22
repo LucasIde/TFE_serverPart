@@ -10,10 +10,9 @@ const gameController = {
 			}
 
 			const excluded = (excludedId) ? excludedId.split(",").map(x => parseInt(x, 10))  : [];
-			console.log(excluded);
 			const games = await db.Game.findAll({
 				where: {
-					name: { [Op.iLike]: `${query}%` }, // Postgres
+					name: { [Op.iLike]: `%${query}%` }, // Postgres
 					id: { [Op.notIn]: excluded }
 				},
 				limit: 10,

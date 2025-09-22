@@ -35,7 +35,14 @@ export default function eventModel(sequelize) {
                 type: DataTypes.DATE,
                 allowNull: true,
             },
-        }, {
+            max_player: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                validate: {
+                    min: 1,
+                },
+            }
+            }, {
         tableName: 'event',
         timestamps: true
     }

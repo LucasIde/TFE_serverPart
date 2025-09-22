@@ -19,9 +19,6 @@ app.use('/api', authentificationMiddleware(), apiRouter);
 
 try {
 
-	await db.sequelize.authenticate();
-	console.log("Connected to the DB");
-
 	await db.sequelize.sync({alter : true});
 	console.log("DB synched");
 	

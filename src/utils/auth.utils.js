@@ -29,7 +29,6 @@ export function generateToken({ id, username, role }) {
                 reject(new Error('Token not generated'));
                 return;
             }
-
             resolve(token);
         });
 
@@ -47,7 +46,6 @@ export function decodeToken(token) {
         //? Option de validation
         const options = {
             issuer: process.env.JWT_ISSUER,
-            audience: process.env.JWT_AUDIENCE
         }
 
         jwt.verify(token, secretKey, options, (error, data) => {

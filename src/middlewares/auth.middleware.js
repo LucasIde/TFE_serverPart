@@ -4,11 +4,13 @@ export function authentificationMiddleware() {
 
     return async (req, res, next) => {
 
+        console.log("header", req.headers);
         //? Récuperation des données d'authentification
         const authData = req.headers['authorization'] ?? '';
-
+        console.log("data", authData);
         //? Extraction du token
         const [prefix, token] = authData.split(' ');
+        console.log("token", token);
 
         //? Si aucune donnée valide -> Utilisateur non authentifier
         if (prefix?.toLowerCase() !== 'bearer' || !token) {
@@ -21,6 +23,7 @@ export function authentificationMiddleware() {
         try {
             //? Utilisteur authentifier !
             req.user = await decodeToken(token);
+            console.log("/ user " , req.user)
         }
         catch {
             //? Token invalide -> Utilisateur non authentifier
