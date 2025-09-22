@@ -4,19 +4,20 @@ import db from "../db/models/index.js";
 const gameController = {
 	getByName: async (req, res) => {
 		try {
-			const {query , excludedId} = req.query;
+			const { query, excludedId } = req.query;
 			if (!query || query.length < 2) {
 				return res.json([]); // renvoyer vide
 			}
 
-			const excluded = (excludedId) ? excludedId.split(",").map(x => parseInt(x, 10))  : [];
+			const excluded = (excludedId) ? excludedId.split(",").map(x => parseInt(x, 10)) : [];
 			const games = await db.Game.findAll({
 				where: {
 					name: { [Op.iLike]: `%${query}%` }, // Postgres
 					id: { [Op.notIn]: excluded }
 				},
 				limit: 10,
-				attributes: ["id", "appId", "name", "headerImage", "libraryImage"]
+				attributes: ["id", "appId", "name", "headerImage", "libraryImage"],
+				order: [[db.sequelize.fn(	"POSITION",	db.sequelize.literal(`'${query}' IN "name"`)),"ASC"]]
 			});
 
 			res.json(games);
@@ -35,7 +36,7 @@ const gameController = {
 				return res.status(400).json({ error: "Invalid game name" });
 			}
 
-			const exists = await db.Game.findOne({ where: {name} });
+			const exists = await db.Game.findOne({ where: { name } });
 			if (exists) {
 				return res.status(200).json({
 					message: "Game already exists",
