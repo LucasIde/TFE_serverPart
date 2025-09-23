@@ -7,6 +7,9 @@ eventRouter.route('/add')
 	.post(eventController.add);
 
 eventRouter.route('/')
-	.get(eventController.getById);
+	.get(eventController.getAllById);
+
+eventRouter.route('/:id')
+	.get(eventController.getEventById);
 
 export default eventRouter;

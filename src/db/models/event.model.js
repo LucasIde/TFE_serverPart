@@ -41,6 +41,13 @@ export default function eventModel(sequelize) {
                 validate: {
                     min: 1,
                 },
+            },
+            event_duration: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                validate: {
+                    min: 1,
+                },
             }
             }, {
         tableName: 'event',
