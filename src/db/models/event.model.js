@@ -42,6 +42,11 @@ export default function eventModel(sequelize) {
                     min: 1,
                 },
             },
+            votesClosed: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
+            },
             event_duration: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
@@ -49,7 +54,7 @@ export default function eventModel(sequelize) {
                     min: 1,
                 },
             }
-            }, {
+        }, {
         tableName: 'event',
         timestamps: true
     }

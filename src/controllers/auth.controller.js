@@ -71,7 +71,6 @@ const authController = {
 			}
 
 			const token = await generateToken({id : user.id, username : user.username, role : user.role});
-			console.log(token);
 
 			res.status(200).json({
 				message : "succesfuly logged"
