@@ -7,6 +7,7 @@ import eventDateModel from "./dateModel.js";
 import userEventDateVoteModel from "./userEventDateVote.model.js";
 import userEventGameVoteModel from "./userEventGameVote.model.js";
 import eventFinalGameModel from "./eventFinalGame.model.js";
+import userFriendModel from "./userFriend.model.js";
 
 const { DB_DATABASE, DB_USER, DB_PASSWORD, DB_SERVER, DB_PORT } = process.env;
 
@@ -31,6 +32,8 @@ db.Date = eventDateModel(sequelize);
 db.EventFinalGame = eventFinalGameModel(sequelize);
 db.UserEventGameVote = userEventGameVoteModel(sequelize);
 db.UserEventDateVote = userEventDateVoteModel(sequelize);
+db.UserFriend = userFriendModel(sequelize);
+
 
 // Un User peut créer plusieurs Events
 db.User.hasMany(db.Event, { foreignKey: "creatorId", as: "createdEvents" });
@@ -94,8 +97,32 @@ db.Date.belongsToMany(db.UserEvent, {
   as: "votedByUserEvents"
 });
 
+
 db.UserEventGameVote.belongsTo(db.UserEvent, { foreignKey: "userEventId" });
 db.UserEventDateVote.belongsTo(db.UserEvent, { foreignKey: "userEventId" });
+
+// Relation N–N User ↔ User via UserFriend
+db.User.belongsToMany(db.User, {
+  through: db.UserFriend,
+  as: "friendsLink",
+  foreignKey: "userId",
+  otherKey: "friendId",
+});
+
+db.User.belongsToMany(db.User, {
+  through: db.UserFriend,
+  as: "friendsLinkReverse",
+  foreignKey: "friendId",
+  otherKey: "userId",
+});
+
+// Permet de retrouver qui a envoyé la demande
+db.UserFriend.belongsTo(db.User, { as: "requester", foreignKey: "requesterId" });
+db.User.hasMany(db.UserFriend, { as: "sentFriendRequests", foreignKey: "requesterId" });
+
+// Accès direct aux FK (facilite les includes)
+db.UserFriend.belongsTo(db.User, { as: "user", foreignKey: "userId" });
+db.UserFriend.belongsTo(db.User, { as: "friend", foreignKey: "friendId" });
 
 
 export default db;

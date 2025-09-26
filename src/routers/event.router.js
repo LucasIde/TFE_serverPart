@@ -1,6 +1,7 @@
 import { Router } from "express";
 import eventController from "../controllers/event.controller.js";
 import eventVoteController from "../controllers/eventVote.controller.js";
+import eventInviteController from "../controllers/eventInvite.controller.js";
 
 const eventRouter = Router();
 
@@ -18,12 +19,21 @@ eventRouter.route("/:eventId/votes")
 	.get(eventVoteController.getMyVotes);
 
 eventRouter.route('/:id/votes/summary')
-  .get(eventVoteController.getVotesSummary);
+	.get(eventVoteController.getVotesSummary);
 
-  eventRouter.route('/:id/votes/close')
-  .put(eventVoteController.closeVotes);
+eventRouter.route('/:id/votes/close')
+	.put(eventVoteController.closeVotes);
 
 eventRouter.route('/:id/final')
-  .put(eventVoteController.setFinalChoices);
+	.put(eventVoteController.setFinalChoices);
+
+//   invite
+eventRouter.route("/:eventId/invite/:friendId")
+	.post(eventInviteController.inviteUser)
+	.delete(eventInviteController.removeParticipant);
+eventRouter.route("/:eventId/accept")
+	.put(eventInviteController.acceptInvite);
+eventRouter.route("/:eventId/decline")
+	.put(eventInviteController.declineInvite);
 
 export default eventRouter;

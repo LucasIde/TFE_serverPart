@@ -91,12 +91,28 @@ const eventController = {
             // 1. Events publics visibles par tout le monde
             const publicEvents = await db.Event.findAll({
                 where: { visibility: "public" },
-                attributes: safeEventAttributes,
+                attributes: [
+                    ...safeEventAttributes,
+                    [
+                        db.sequelize.literal(`(
+                          SELECT COUNT(*)
+                          FROM "userevent" AS ue
+                          WHERE ue."eventId" = "Event"."id"
+                        )`),
+                        "participantCount"
+                    ]
+                ],
                 include: [
                     {
                         model: db.Game,
                         attributes: safeGameAttributes,
-                        through: { attributes: ["eventId"] } // 👈 EventGame réduit
+                        through: { attributes: ["eventId"] }
+                    },
+                    {
+                        model: db.Game,
+                        as: "finalGames",
+                        attributes: safeGameAttributes,
+                        through: { attributes: [] }
                     },
                     {
                         model: db.User,
@@ -113,17 +129,33 @@ const eventController = {
             if (userId) {
                 privateEvents = await db.Event.findAll({
                     where: { visibility: "private" },
-                    attributes: safeEventAttributes,
+                    attributes: [
+                        ...safeEventAttributes,
+                        [
+                            db.sequelize.literal(`(
+                              SELECT COUNT(*)
+                              FROM "userevent" AS ue
+                              WHERE ue."eventId" = "Event"."id"
+                            )`),
+                            "participantCount"
+                        ]
+                    ],
                     include: [
                         {
                             model: db.User,
-                            where: { id: userId }, // on garde seulement ceux où user est lié
-                            through: { attributes: [] } // pas besoin de dupliquer ici
+                            where: { id: userId },
+                            through: { attributes: [] }
                         },
                         {
                             model: db.Game,
                             attributes: safeGameAttributes,
-                            through: { attributes: ["eventId"] } // 👈 EventGame réduit
+                            through: { attributes: ["eventId"] }
+                        },
+                        {
+                            model: db.Game,
+                            as: "finalGames",
+                            attributes: safeGameAttributes,
+                            through: { attributes: [] }
                         },
                         {
                             model: db.User,
@@ -135,6 +167,7 @@ const eventController = {
                     ]
                 });
             }
+
 
             // 3. Renvoyer sous forme d'objet séparé
             res.json({
@@ -163,6 +196,12 @@ const eventController = {
                         order: [["date", "ASC"]],
                     },
                     { model: db.Game },
+                    {
+                        model: db.Game,
+                        as: "finalGames", // 🔥 ajout
+                        attributes: ["id", "name", "headerImage", "libraryImage"],
+                        through: { attributes: [] }
+                    },
                     {
                         model: db.User,
                         attributes: safeUserAttributes,
