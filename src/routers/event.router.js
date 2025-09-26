@@ -12,7 +12,15 @@ eventRouter.route('/')
 	.get(eventController.getAllById);
 
 eventRouter.route('/:id')
-	.get(eventController.getEventById);
+.get(eventController.getEventById);
+
+eventRouter.route("/:id/status")
+	.put(eventController.updateStatus);
+eventRouter.route("/:id/end")
+	.put(eventController.endEvent);
+
+eventRouter.route("/:id/join")
+	.post(eventController.joinPublicEvent);
 
 eventRouter.route("/:eventId/votes")
 	.put(eventVoteController.upsertVotes)

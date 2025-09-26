@@ -71,34 +71,23 @@ const eventController = {
             const userId = req.user?.id;
             const safeUserAttributes = ["id", "username", "discriminator", "role"];
             const safeGameAttributes = [
-                "id",
-                "appId",
-                "name",
-                "headerImage",
-                "libraryImage",
+                "id", "appId", "name", "headerImage", "libraryImage"
             ];
             const safeEventAttributes = [
-                "id",
-                "title",
-                "description",
-                "visibility",
-                "status",
-                "finalDate",
-                "max_player",
-                "event_duration"
+                "id", "title", "description", "visibility", "status",
+                "finalDate", "max_player", "event_duration"
             ];
 
-            // 1. Events publics visibles par tout le monde
-            const publicEvents = await db.Event.findAll({
-                where: { visibility: "public" },
+            // 1. Récupérer tous les events
+            const allEvents = await db.Event.findAll({
                 attributes: [
                     ...safeEventAttributes,
                     [
                         db.sequelize.literal(`(
-                          SELECT COUNT(*)
-                          FROM "userevent" AS ue
-                          WHERE ue."eventId" = "Event"."id"
-                        )`),
+            SELECT COUNT(*)
+            FROM "userevent" AS ue
+            WHERE ue."eventId" = "Event"."id"
+          )`),
                         "participantCount"
                     ]
                 ],
@@ -124,62 +113,50 @@ const eventController = {
                 ]
             });
 
-            // 2. Events privés → seulement si user connecté
-            let privateEvents = [];
-            if (userId) {
-                privateEvents = await db.Event.findAll({
-                    where: { visibility: "private" },
-                    attributes: [
-                        ...safeEventAttributes,
-                        [
-                            db.sequelize.literal(`(
-                              SELECT COUNT(*)
-                              FROM "userevent" AS ue
-                              WHERE ue."eventId" = "Event"."id"
-                            )`),
-                            "participantCount"
-                        ]
-                    ],
-                    include: [
-                        {
-                            model: db.User,
-                            where: { id: userId },
-                            through: { attributes: [] }
-                        },
-                        {
-                            model: db.Game,
-                            attributes: safeGameAttributes,
-                            through: { attributes: ["eventId"] }
-                        },
-                        {
-                            model: db.Game,
-                            as: "finalGames",
-                            attributes: safeGameAttributes,
-                            through: { attributes: [] }
-                        },
-                        {
-                            model: db.User,
-                            attributes: safeUserAttributes,
-                            through: { attributes: ["status", "role", "score"] }
-                        },
-                        { model: db.User, as: "creator", attributes: safeUserAttributes },
-                        { model: db.User, as: "winner", attributes: safeUserAttributes }
-                    ]
-                });
+            // 2. Faire le tri ici
+            let participant = [];
+            let invited = [];
+            let publics = [];
+            let privates = [];
+
+            for (const ev of allEvents) {
+                const me = ev.Users.find(u => u.id === userId);
+
+                if (ev.visibility === "private") {
+                    if (!userId || !me) {
+                        continue; // je ne vois pas les privés si je n’y suis pas lié
+                    }
+
+                    if (me.UserEvent?.status === "accepted") {
+                        participant.push(ev);
+                    } else if (me.UserEvent?.status === "invited") {
+                        invited.push(ev);
+                    } else {
+                        privates.push(ev);
+                    }
+                } else {
+                    // public
+                    if (me?.UserEvent?.status === "accepted") {
+                        participant.push(ev);
+                    } else if (me?.UserEvent?.status === "invited") {
+                        invited.push(ev);
+                    } else {
+                        publics.push(ev);
+                    }
+                }
             }
 
 
-            // 3. Renvoyer sous forme d'objet séparé
-            res.json({
-                public: publicEvents,
-                private: privateEvents
-            });
+            // 3. Retourner l’objet structuré
+            res.json({ participant, invited, public: publics, private: privates });
 
         } catch (err) {
             console.error(err);
             res.status(500).json({ error: "Erreur serveur" });
         }
     },
+
+
 
     getEventById: async (req, res) => {
         try {
@@ -241,6 +218,73 @@ const eventController = {
             //     return res.status(501).json({ error: "Accès 'friends' non implémenté" });
             // }
 
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: "Erreur serveur" });
+        }
+    },
+
+    joinPublicEvent: async (req, res) => {
+        try {
+            const userId = req.user?.id;
+            const { id: eventId } = req.params;
+
+            const event = await db.Event.findByPk(eventId);
+            if (!event) return res.status(404).json({ error: "Événement introuvable" });
+
+            if (event.visibility !== "public") {
+                return res.status(403).json({ error: "Cet événement n'est pas public" });
+            }
+
+            // Upsert dans UserEvent
+            await db.UserEvent.upsert({
+                userId,
+                eventId,
+                status: "accepted",
+                role: "participant"
+            });
+
+            res.json({ success: true, message: "Vous avez rejoint l'événement" });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: "Erreur serveur" });
+        }
+    },
+    updateStatus: async (req, res) => {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        try {
+            const event = await db.Event.findByPk(id);
+            if (!event) {
+                return res.status(404).json({ error: "Événement introuvable" });
+            }
+
+            // 👇 On met à jour le champ status
+            event.status = status;
+            await event.save();
+
+            res.json({ message: "Statut mis à jour ✅", event });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: "Erreur serveur lors de la mise à jour du statut" });
+        }
+    },
+    endEvent: async (req, res) => {
+        const { id } = req.params;
+        const { winnerId } = req.body;
+
+        try {
+            const event = await db.Event.findByPk(id, {
+                include: [{ model: db.User, as: "Users" }]
+            });
+            if (!event) return res.status(404).json({ error: "Événement introuvable" });
+
+            event.status = "finished";
+            event.winnerId = winnerId || null;
+            await event.save();
+
+            res.json({ message: "Événement terminé ✅", event });
         } catch (err) {
             console.error(err);
             res.status(500).json({ error: "Erreur serveur" });
