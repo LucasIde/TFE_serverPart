@@ -97,7 +97,7 @@ const eventInviteController = {
 			// ⚡ Autorisations :
 			const isCreator = event.creator.id === requesterId;
 			const isAdmin = req.user.role === "admin";
-			const isSelf = requesterId === Number(friendId);
+			const isSelf = Number(requesterId) === Number(friendId);
 
 			if (!isCreator && !isAdmin && !isSelf) {
 				return res.status(403).json({ error: "Non autorisé à retirer ce participant" });

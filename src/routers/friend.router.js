@@ -6,6 +6,8 @@ const friendRouter = Router();
 // Rechercher un user
 friendRouter.route("/search")
   .get(friendController.searchUsers);
+friendRouter.route("/search/user")
+  .get(friendController.searchAllUsers);
 
 // Envoyer une demande d’ami
 friendRouter.route("/:friendId")

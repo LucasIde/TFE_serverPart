@@ -212,7 +212,29 @@ const friendController = {
       console.error(err);
       return res.status(500).json({ error: "Erreur serveur" });
     }
-  }
+  },
+  searchAllUsers: async (req, res) => {
+    const { query } = req.query;
+    if (!query || query.length < 2) return res.json([]);
+
+    try {
+      const users = await db.User.findAll({
+        where: {
+          [Op.or]: [
+            { username: { [Op.iLike]: `%${query}%` } },
+            { discriminator: { [Op.iLike]: `%${query}%` } },
+          ],
+        },
+        attributes: ["id", "username", "discriminator"],
+        limit: 10,
+      });
+
+      return res.json(users);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erreur serveur" });
+    }
+  },
 };
 
 export default friendController;
